@@ -1,41 +1,50 @@
-name: Update s Streams
-
-on:
-  schedule:
-    - cron: '0 */6 * * *'  # Run every 6 hours
-  workflow_dispatch:  # Allow manual trigger
+name: Kontrol
 
 concurrency:
-  group: catcast-update
-  cancel-in-progress: false  # Wait for previous run to complete
+  group: \( {{ github.workflow }}- \){{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'  
 
 jobs:
-  update-streams:
+  BirlesikGuncelleme:
     runs-on: ubuntu-latest
-    
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
-    
-    
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.11'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install request
-        pip install bs4
-    
-    - name: Run update script
-      run: python s.py
-    
-    - name: Commit and push changes
-      run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
-        git add ozel/
-        git add -u ozel/
-        git diff --quiet && git diff --staged --quiet || (git commit -m "Update s streams [$(date +'%Y-%m-%d %H:%M:%S')]" && git push)
+      - name: Depoyu Klonla
+        uses: actions/checkout@v4.2.2
+        
+      - name: Python 3.11.8 Yükle
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: 3.11.8
+          
+      - name: Gereksinimleri Kur
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U setuptools wheel Kekik httpx parsel requests cloudscraper beautifulsoup4
+          
+      - name: s.py Çalıştır
+        continue-on-error: true
+        run: python selcuk.py
+
+      - name: Değişiklik Kontrolü
+        id: degisiklik_kontrol
+        run: |
+          git diff --quiet . || echo "degisiklik=true" >> $GITHUB_OUTPUT
+          
+      - name: Değişiklikleri Commit Et
+        if: steps.degisiklik_kontrol.outputs.degisiklik == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "🔄 Kanallar güncellendi" -m "📺 Domain kontrolü ve M3U güncellemeleri tamamlandı" -m "🕒 Otomatik işlem - $GITHUB_SHA"
+          git push
