@@ -7,7 +7,7 @@ concurrency:
 on:
   workflow_dispatch:          # Manuel çalıştırmak için
   schedule:
-    - cron: '*/5 * * * *'     # Her 5 dakikada bir
+    - cron: ' 0 * * * *'     # Her 5 dakikada bir
 
 jobs:
   update-selcuk:
